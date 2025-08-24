@@ -5,6 +5,7 @@
 Virtual Machine项目 - Python测试脚本
 测试parser/asm/cpu的完整编译、汇编、运行流程
 支持批量测试tests文件夹下的txt程序
+支持Toy架构测试
 包含超时机制防止程序卡死
 """
 
@@ -130,23 +131,145 @@ def test_individual_modules():
     parser_exe = "build/bin/parser"
     asm_exe = "build/bin/asm"
     cpu_exe = "build/bin/cpu"
+    toy_cpu_exe = "build/bin/toy_cpu"
+    vm_exe = "build/bin/vm"
     
-    if not all([check_executable(parser_exe), 
-                check_executable(asm_exe), 
-                check_executable(cpu_exe)]):
+    executables = [
+        (parser_exe, "Parser"),
+        (asm_exe, "Asm"), 
+        (cpu_exe, "CPU"),
+        (toy_cpu_exe, "Toy CPU"),
+        (vm_exe, "VM")
+    ]
+    
+    all_exist = True
+    for exe, name in executables:
+        if not check_executable(exe):
+            all_exist = False
+    
+    if not all_exist:
         return False
     
     # 测试帮助信息
     print_info("测试帮助信息...")
-    for exe, name in [(parser_exe, "Parser"), (asm_exe, "Asm"), (cpu_exe, "CPU")]:
+    for exe, name in executables:
         success, _, _ = run_command([exe, "--help"], f"{name}帮助信息", timeout=10)
         if not success:
-            print_warning(f"{name}帮助信息测试失败")
+            # 尝试不带参数的帮助
+            success, _, _ = run_command([exe], f"{name}帮助信息", timeout=10)
+            if not success:
+                print_warning(f"{name}帮助信息测试失败")
     
     return True
 
+def test_toy_architecture():
+    """测试Toy架构"""
+    print_info("=== 测试Toy架构 ===")
+    
+    # 检查Toy架构可执行文件
+    asm_exe = "build/bin/asm"
+    toy_cpu_exe = "build/bin/toy_cpu"
+    vm_exe = "build/bin/vm"
+    
+    if not all([check_executable(asm_exe), 
+                check_executable(toy_cpu_exe), 
+                check_executable(vm_exe)]):
+        return False
+    
+    # 查找Toy架构测试文件
+    tests_dir = "tests"
+    toy_asm_files = glob.glob(os.path.join(tests_dir, "*.asm"))
+    
+    if not toy_asm_files:
+        print_warning("未找到Toy架构测试文件(.asm)")
+        return True
+    
+    print_info(f"找到 {len(toy_asm_files)} 个Toy架构测试文件:")
+    for asm_file in toy_asm_files:
+        print_info(f"  - {asm_file}")
+    
+    success_count = 0
+    total_count = len(toy_asm_files)
+    
+    for i, asm_file in enumerate(toy_asm_files, 1):
+        print_info(f"\n开始测试Toy架构 ({i}/{total_count}): {asm_file}")
+        start_time = time.time()
+        
+        if test_toy_single_program(asm_file):
+            success_count += 1
+            elapsed_time = time.time() - start_time
+            print_success(f"Toy架构测试完成 ({elapsed_time:.2f}秒): {asm_file}")
+        else:
+            elapsed_time = time.time() - start_time
+            print_error(f"Toy架构测试失败 ({elapsed_time:.2f}秒): {asm_file}")
+    
+    print_info(f"\n=== Toy架构测试结果 ===")
+    print_success(f"成功: {success_count}/{total_count}")
+    
+    return success_count == total_count
+
+def test_toy_single_program(asm_file, output_prefix="toy"):
+    """测试单个Toy架构程序"""
+    print_info(f"=== 测试Toy架构程序: {asm_file} ===")
+    
+    # 生成输出文件名
+    base_name = os.path.splitext(os.path.basename(asm_file))[0]
+    bin_output = f"{output_prefix}_{base_name}.bin"
+    
+    # 步骤1: Asm - 汇编
+    print_info(f"步骤1: 执行汇编 (Asm) - {asm_file}")
+    asm_exe = "build/bin/asm"
+    
+    success, stdout, stderr = run_command(
+        [asm_exe, asm_file, bin_output], 
+        f"汇编 {asm_file}",
+        TIMEOUT_ASM
+    )
+    
+    if not success:
+        print_error(f"汇编失败: {asm_file}")
+        return False
+    
+    if not check_file(bin_output):
+        return False
+    
+    # 显示生成的目标文件信息
+    file_size = os.path.getsize(bin_output)
+    print_success(f"生成目标文件: {bin_output} ({file_size} 字节)")
+    
+    # 步骤2: Toy CPU - 执行
+    print_info(f"步骤2: 执行Toy CPU - {bin_output}")
+    toy_cpu_exe = "build/bin/toy_cpu"
+    
+    success, stdout, stderr = run_command(
+        [toy_cpu_exe, bin_output], 
+        f"Toy CPU执行 {bin_output}",
+        TIMEOUT_CPU
+    )
+    
+    if not success:
+        print_error(f"Toy CPU执行失败: {bin_output}")
+        return False
+    
+    # 步骤3: 统一VM - 执行
+    print_info(f"步骤3: 执行统一VM - {bin_output}")
+    vm_exe = "build/bin/vm"
+    
+    success, stdout, stderr = run_command(
+        [vm_exe, "toy", bin_output], 
+        f"统一VM执行 {bin_output}",
+        TIMEOUT_CPU
+    )
+    
+    if not success:
+        print_error(f"统一VM执行失败: {bin_output}")
+        return False
+    
+    print_success(f"Toy架构程序 {asm_file} 测试通过！")
+    return True
+
 def test_single_program(test_file, output_prefix):
-    """测试单个程序"""
+    """测试单个程序（原有架构）"""
     print_info(f"=== 测试程序: {test_file} ===")
     
     # 生成输出文件名
@@ -198,12 +321,12 @@ def test_single_program(test_file, output_prefix):
     file_size = os.path.getsize(bin_output)
     print_success(f"生成目标文件: {bin_output} ({file_size} 字节)")
     
-    # 步骤3: CPU - 执行
+    # 步骤3: CPU - 执行（使用Toy架构）
     print_info(f"步骤3: 执行虚拟机 (CPU) - {bin_output}")
     cpu_exe = "build/bin/cpu"
     
     success, stdout, stderr = run_command(
-        [cpu_exe, bin_output], 
+        [cpu_exe, "toy", bin_output], 
         f"虚拟机执行 {bin_output}",
         TIMEOUT_CPU
     )
@@ -298,7 +421,7 @@ def test_with_existing_files():
                 output_file = f"existing_{file_name.replace('.asm', '.bin')}"
                 success, _, _ = run_command([exe_path, file_name, output_file], f"Asm处理{file_name}", TIMEOUT_ASM)
             elif exe_path.endswith("cpu"):
-                success, _, _ = run_command([exe_path, file_name], f"CPU执行{file_name}", TIMEOUT_CPU)
+                success, _, _ = run_command([exe_path, "toy", file_name], f"CPU执行{file_name}", TIMEOUT_CPU)
             
             if success:
                 print_success(f"{file_name} 测试通过")
@@ -319,6 +442,8 @@ def cleanup():
         "batch_*.bin",
         "existing_*.asm",
         "existing_*.bin",
+        "toy_*.asm",
+        "toy_*.bin",
         "pipeline_output.asm",
         "pipeline_output.bin"
     ]
@@ -348,6 +473,9 @@ def main():
         if not test_individual_modules():
             print_error("模块测试失败")
             sys.exit(1)
+        
+        # 测试Toy架构
+        test_toy_architecture()
         
         # 使用现有文件测试
         test_with_existing_files()
