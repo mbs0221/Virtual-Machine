@@ -16,6 +16,6 @@ int main()
 	CPU.execute();
 	CPU.store();
 	cout << "exit." << endl;
-	cin >> a;
+	// cin >> a;  // 注释掉等待用户输入
 	return 0;
 }
