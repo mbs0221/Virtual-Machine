@@ -1,12 +1,15 @@
 #include "vm.h"
+#include <iostream>
+#include <cstdio>
 
-void main()
+using namespace std;
+
+int main()
 {
 	char a;
-	FILE fp;
-	FILE *fp = &fp;
-	// ÐéÄâ»úÖ´ÐÐ
-	printf("ÐéÄâ»úÖ´ÐÐ\n");
+	FILE *fp = NULL;
+	// è™šæ‹Ÿæœºæ‰§è¡Œ
+	printf("è™šæ‹Ÿæœºæ‰§è¡Œ\n");
 	CPU CPU;
 	CPU.init();
 	CPU.load("data.obj");
@@ -14,4 +17,5 @@ void main()
 	CPU.store();
 	cout << "exit." << endl;
 	cin >> a;
+	return 0;
 }

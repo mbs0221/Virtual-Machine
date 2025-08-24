@@ -1,29 +1,36 @@
 #include "asm.h"
+#include <iostream>
 
-void main(){
+using namespace std;
+
+int main(){
 	char a;
-	FILE file;
-	FILE *fp = &file;
-	// »ã±àÉú³ÉÄ¿±ê´úÂë
+	FILE *fp = NULL;
+	// æ±‡ç¼–å™¨çš„ç›®æ ‡ä»£ç 
 	Asm Asm("data.s");
-	printf("Óï·¨·ÖÎö¿ªÊ¼\n");
+	printf("è¯­æ³•åˆ†æå¼€å§‹\n");
 	Asm.parse();
-	printf("Óï·¨·ÖÎö½áÊø\n");
-	printf("»ã±à¿ªÊ¼\n");
+	printf("è¯­æ³•åˆ†æå®Œæˆ\n");
+	printf("æ±‡ç¼–å¼€å§‹\n");
 	printf("line  width offset\n");
-	fopen_s(&fp, "data.bin", "w");
+	fp = fopen("data.bin", "w");
+	if (fp == NULL) {
+		printf("é”™è¯¯: æ— æ³•æ‰“å¼€æ–‡ä»¶ data.bin\n");
+		return 1;
+	}
 	Asm.write(fp);
 	fclose(fp);
-	printf("»ã±à½áÊø\n");
-	// ĞéÄâ»úÖ´ĞĞ
-	printf("ĞéÄâ»úÖ´ĞĞ\n");
+	printf("æ±‡ç¼–å®Œæˆ\n");
+	// è™šæ‹Ÿæœºæ‰§è¡Œ
+	printf("è™šæ‹Ÿæœºæ‰§è¡Œ\n");
 	//CPU CPU;
 	//CPU.init();
-	//fopen_s(&fp, "data.bin", "r");
+	//fp = fopen("data.bin", "r");
 	//CPU.load(fp);
 	//fclose(fp);
 	//CPU.execute();
 	//CPU.store();
-	printf("Ö´ĞĞ½áÊø\n");
-	cin >> a;
+	printf("æ‰§è¡Œç»“æŸ\n");
+	std::cin >> a;
+	return 0;
 }

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <queue>
+#include <cstring>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ enum Tag{
 	INC, DEC // UNARY
 };
 
-// ´Ê·¨µ¥Ôª
+// ï¿½Ê·ï¿½ï¿½ï¿½Ôª
 struct Token{
 	int	kind;
 	Token(int tag) :kind(tag){  }
@@ -103,7 +104,7 @@ public:
 			fclose(file);
 	}
 	void open(char *filename) {
-		fopen_s(&file, filename, "rb");
+		file = fopen(filename, "rb");
 	}
 	char operator[](int i) {
 		return buf[(front + i) % size];
@@ -127,7 +128,7 @@ public:
 		while (!isfull()) {
 			size_t sz = fread(buf+rear, sizeof(char), 1, file);
 			if (sz == 0) {
-				// ÖÕÖ¹
+				// ï¿½ï¿½Ö¹
 				buf[rear-1] = '\0';
 				break;
 			}
@@ -136,7 +137,7 @@ public:
 	}
 };
 
-// ´Ê·¨·ÖÎöÆ÷
+// ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class Lexer{
 	map<string, Token*> words;
 	ReadBuffer buffer;
@@ -207,12 +208,12 @@ public:
 					return new Integer(NUM, value);
 				}
 				else {
-					printf("´íÎóµÄÊ®Áù½øÖÆ!");
+					printf("ï¿½ï¿½ï¿½ï¿½ï¿½Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!");
 					return nullptr;
 				}
 			}
 			else if (ch >= '0'&&ch <= '7') {
-				//°Ë½øÖÆÕûÊý
+				//ï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				do {
 					value = 8 * value + ch - '0';
 					ch = buffer.peak();
@@ -222,13 +223,13 @@ public:
 				return new Integer(NUM, value);
 			}
 			else {
-				//Ê®½øÖÆÕûÊý0
+				//Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0
 				buffer.read();
 				return new Integer(NUM, 0);
 			}
 		}
 		else {
-			//³ý0ÍâÊ®½øÖÆÕûÊý,5×´Ì¬
+			//ï¿½ï¿½0ï¿½ï¿½Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,5×´Ì¬
 			do {
 				value = 10 * value + ch - '0';
 				ch = buffer.peak();

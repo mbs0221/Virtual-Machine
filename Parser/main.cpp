@@ -1,24 +1,28 @@
 #include "parser.h"
 
-void main(){
+int main(){
 	char a;
-	FILE file;
-	FILE *fp = &file;
+	FILE *fp = NULL;
 	Parser *p = new Parser();
-	printf("¿ªÊ¼Óï·¨·ÖÎö\n");
+	printf("å¼€å§‹è¯­æ³•åˆ†æ\n");
 	AST *st = p->parse("Text.txt");
-	printf("Óï·¨·ÖÎö½áÊø\n");
-	printf("±àÒë¿ªÊ¼\n");
+	printf("è¯­æ³•åˆ†æå®Œæˆ\n");
+	printf("ä»£ç å¼€å§‹\n");
 	printf(" line  stmt\n");
-	fopen_s(&fp, "data.s", "w");
+	fp = fopen("data.s", "w");
+	if (fp == NULL) {
+		printf("é”™è¯¯: æ— æ³•æ‰“å¼€æ–‡ä»¶ data.s\n");
+		return 1;
+	}
 	st->Codegen();
 	fclose(fp);
-	printf("±àÒë½áÊø\n");
+	printf("ä»£ç å®Œæˆ\n");
 	delete p;
-	//fopen_s(&fp, "G.txt", "r");
-	//printf("¿ªÊ¼SLR(1)Óï·¨·ÖÎö\n");
+	//fp = fopen("G.txt", "r");
+	//printf("å¼€å§‹SLR(1)è¯­æ³•åˆ†æ\n");
 	//parse(fp);
-	//printf("SLR(1)Óï·¨·ÖÎö½áÊø\n");
+	//printf("SLR(1)è¯­æ³•åˆ†æå®Œæˆ\n");
 	//fclose(fp);
 	//cin >> a;
+	return 0;
 }
