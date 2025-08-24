@@ -8,9 +8,9 @@ struct Label{
 
 struct Code{
 	BYTE opt;
-	WORD line = 0;// µ±Ç°Ö¸ÁîÔÚ»ã±àÎÄ¼þÖÐµÄÎ»ÖÃ
-	WORD width = 0;// µ±Ç°´úÂëËùÕ¼ÓÃµÄ¿í¶È
-	WORD offset = 0;// µ±Ç°´úÂë¶ÎµÄÆ«ÒÆÁ¿
+	WORD line = 0;// å½“å‰æŒ‡ä»¤åœ¨æºæ–‡ä»¶ä¸­çš„è¡Œå·
+	WORD width = 0;// å½“å‰æŒ‡ä»¤å ç”¨çš„å­—å®½
+	WORD offset = 0;// å½“å‰æŒ‡ä»¤çš„åç§»é‡
 	virtual void code(FILE* fp){
 		printf("[%04d][%04d][%04x]", line, width, offset);
 	}
@@ -61,11 +61,72 @@ struct Store :Code{
 };
 
 struct Halt:Code{
-	virtual void code(FILE* fp){
+	virtual void code(FILE *fp){
 		Code::code(fp);
 		opt = HALT;
 		printf("halt\t$%02x\n", opt);
 		fwrite(&opt, sizeof(BYTE), 1, fp);
+	}
+};
+
+struct Push:Code{
+	BYTE reg;
+	virtual void code(FILE *fp){
+		Code::code(fp);
+		printf("push\t$%02x $%02x\n", opt, reg);
+		fwrite(&opt, sizeof(BYTE), 1, fp);
+		fwrite(&reg, sizeof(BYTE), 1, fp);
+	}
+};
+
+struct Pop:Code{
+	BYTE reg;
+	virtual void code(FILE *fp){
+		Code::code(fp);
+		printf("pop\t$%02x $%02x\n", opt, reg);
+		fwrite(&opt, sizeof(BYTE), 1, fp);
+		fwrite(&reg, sizeof(BYTE), 1, fp);
+	}
+};
+
+struct Mov:Code{
+	BYTE reg1, reg2;
+	virtual void code(FILE *fp){
+		Code::code(fp);
+		printf("mov\t$%02x $%02x $%02x\n", opt, reg1, reg2);
+		fwrite(&opt, sizeof(BYTE), 1, fp);
+		fwrite(&reg1, sizeof(BYTE), 1, fp);
+		fwrite(&reg2, sizeof(BYTE), 1, fp);
+	}
+};
+
+struct Add:Code{
+	BYTE reg1, reg2;
+	virtual void code(FILE *fp){
+		Code::code(fp);
+		printf("add\t$%02x $%02x $%02x\n", opt, reg1, reg2);
+		fwrite(&opt, sizeof(BYTE), 1, fp);
+		fwrite(&reg1, sizeof(BYTE), 1, fp);
+		fwrite(&reg2, sizeof(BYTE), 1, fp);
+	}
+};
+
+struct Ret:Code{
+	virtual void code(FILE *fp){
+		Code::code(fp);
+		opt = RET;
+		printf("ret\t$%02x\n", opt);
+		fwrite(&opt, sizeof(BYTE), 1, fp);
+	}
+};
+
+struct Call :Code{
+	Label *addr;
+	virtual void code(FILE* fp){
+		Code::code(fp);
+		printf("call\t$%02x $%04x\n", opt, addr->offset);
+		fwrite(&opt, sizeof(BYTE), 1, fp);
+		fwrite(&addr->offset, sizeof(WORD), 1, fp);
 	}
 };
 

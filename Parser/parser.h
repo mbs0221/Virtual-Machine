@@ -30,6 +30,12 @@ private:
 		}
 		return m[str];
 	}
+	Id* getId(string str){
+		if (m.find(str) == m.end()){
+			return nullptr;
+		}
+		return m[str];
+	}
 	Stmt* stmt()
 	{
 		Stmt *st = nullptr;
@@ -41,6 +47,8 @@ private:
 		case DO:st = stmt_do(); break;
 		case FOR:st = stmt_for(); break;
 		case CASE:st = stmt_case(); break;
+		case FUNC:st = stmt_func(); break;
+		case RETURN:st = stmt_return(); break;
 		case ';':match(';'); break;
 		case '{':st = stmts(); break;
 		default:match(s->kind); break;
@@ -203,12 +211,77 @@ private:
 		Expr* e = nullptr;
 		switch (s->kind){
 		case '(': match('('); e = expr_expr(); match(')'); break;
-		case ID: e = getId(); match(ID); break;
+		case ID: {
+			// 保存当前ID，然后检查下一个token
+			string idName = ((Word*)s)->word;
+			match(ID);
+			// 检查是否是函数调用
+			if (s->kind == '('){
+				// 这是一个函数调用
+				FuncCall *fc = new FuncCall(idName);
+				match('(');
+				// 解析参数列表
+				if (s->kind != ')'){
+					fc->args.push_back(expr_expr());
+					while (s->kind == ','){
+						match(',');
+						fc->args.push_back(expr_expr());
+					}
+				}
+				match(')');
+				e = fc;
+			} else {
+				// 这是一个变量引用
+				e = getId(idName);
+			}
+			break;
+		}
 		case INT:  e = new Number((Integer*)s); match(INT); break;
 		default: printf("F->('%c')\n", s->kind); match(s->kind); break;
 		}
 		return e;
 	}
+	
+	// 函数定义解析
+	Stmt* stmt_func(){
+		FuncDef *f = new FuncDef;
+		f->line = lexer->line;
+		match(FUNC);
+		f->name = ((Word*)s)->word;
+		match(ID);
+		match('(');
+		// 解析参数列表
+		if (s->kind != ')'){
+			putId(new Id(Type::Int, (Word*)s, width));
+			f->params.push_back(getId());
+			width += Type::Int->width;
+			match(ID);
+			while (s->kind == ','){
+				match(',');
+				putId(new Id(Type::Int, (Word*)s, width));
+				f->params.push_back(getId());
+				width += Type::Int->width;
+				match(ID);
+			}
+		}
+		match(')');
+		f->body = stmt();
+		return f;
+	}
+	
+	// 返回语句解析
+	Stmt* stmt_return(){
+		Return *r = new Return;
+		r->line = lexer->line;
+		match(RETURN);
+		if (s->kind != ';'){
+			r->value = expr_expr();
+		}
+		match(';');
+		return r;
+	}
+	
+
 public:
 	Parser(string fp){
 		lexer = new Lexer(fp);
@@ -220,7 +293,7 @@ public:
 	Stmt* parse(){
 		Stmts *sts = new Stmts;
 		sts->line = lexer->line;
-		s = lexer->scan();// Ԥ��һ���ʷ���Ԫ���Ա������﷨����
+		s = lexer->scan();// 预读一个符号
 		while (s->kind != '#'){
 			Stmt *st = stmt();
 			if (st)sts->Ss.push_back(st);

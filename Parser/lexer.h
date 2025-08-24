@@ -12,12 +12,12 @@
 
 using namespace std;
 
-//ºê¶¨ÒåÖÖ±ğÂë
+//å…³é”®å­—
 enum Tag{
-	IF = 256, THEN, ELSE, DO, WHILE, FOR, CASE, ID, INT, END
+	IF = 256, THEN, ELSE, DO, WHILE, FOR, CASE, ID, INT, END, FUNC, RETURN
 };
 
-// ´Ê·¨µ¥Ôª
+// ç¬¦å·
 struct Token{
 	int	kind;
 	Token(int tag) :kind(tag){  }
@@ -75,7 +75,7 @@ struct Integer :Token{
 	}
 };
 
-// ´Ê·¨·ÖÎöÆ÷
+// ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class Lexer{
 	ifstream inf;
 	map<string, Token*> words;
@@ -91,6 +91,8 @@ public:
 		words["for"] = new Word(FOR, "for");
 		words["case"] = new Word(CASE, "case");
 		words["end"] = new Word(END, "end");
+		words["func"] = new Word(FUNC, "func");
+		words["return"] = new Word(RETURN, "return");
 		inf.open(fp, ios::in);
 	}
 	~Lexer(){
@@ -115,7 +117,7 @@ public:
 				str.push_back(ch);
 				inf.read(&ch, sizeof(ch));
 			} while (isalnum(ch));  //1×´Ì¬
-			inf.seekg(-1, ios::cur);//»ØÍËÒ»¸ö×Ö·û
+			inf.seekg(-1, ios::cur);//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½
 			if (words.find(str) == words.end()){
 				return new Word(ID, str);
 			}
@@ -141,11 +143,11 @@ public:
 						return new Integer(INT, value);
 					}
 					else{
-						printf("´íÎóµÄÊ®Áù½øÖÆ!");
+						printf("ï¿½ï¿½ï¿½ï¿½ï¿½Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!");
 					}
 				}
 				else if (ch >= '0'&&ch <= '7'){
-					//°Ë½øÖÆÕûÊı
+					//ï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 					do{
 						value = 8 * value + ch - '0';
 						inf.read(&ch, sizeof(ch));
@@ -154,18 +156,18 @@ public:
 					return new Integer(INT, value);
 				}
 				else{
-					//Ê®½øÖÆÕûÊı0
+					//Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0
 					inf.seekg(-1, ios::cur);
 					return new Integer(INT, 0);
 				}
 			}
 			else{
-				//³ı0ÍâÊ®½øÖÆÕûÊı,5×´Ì¬
+				//ï¿½ï¿½0ï¿½ï¿½Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,5×´Ì¬
 				do{
 					value = 10 * value + ch - '0';
 					inf.read(&ch, sizeof(ch));
 				} while (isdigit(ch));
-				inf.seekg(-1, ios::cur);//»ØÍËÒ»¸ö×Ö·û
+				inf.seekg(-1, ios::cur);//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½
 				return new Integer(INT, value);
 			}
 		}

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-// ´Ê·¨µ¥Ôª
+// ï¿½Ê·ï¿½ï¿½ï¿½Ôª
 struct Token{
 	int	kind;
 	Token(int tag) :kind(tag){  }
@@ -71,7 +71,7 @@ struct Integer :Token{
 	}
 };
 
-// ´Ê·¨·ÖÎöÆ÷
+// ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class Lexer{
 	ifstream inf;
 	map<string, Token*> words;
@@ -90,6 +90,12 @@ public:
 		words["je"] = new Word(JE, "je");
 		words["jne"] = new Word(JNE, "jne");
 		words["jg"] = new Word(JG, "jg");
+		words["call"] = new Word(CALL, "call");
+		words["ret"] = new Word(RET, "ret");
+		words["push"] = new Word(PUSH, "push");
+		words["pop"] = new Word(POP, "pop");
+		words["mov"] = new Word(MOV, "mov");
+		words["add"] = new Word(ADD, "add");
 		inf.open(fp, ios::in);
 	}
 	~Lexer(){
@@ -99,32 +105,46 @@ public:
 	}
 	Token *scan()
 	{
-		int i = 0;
 		char ch;
 		do{
+			if (inf.eof()) {
+				return new Token(END);
+			}
 			inf.read(&ch, sizeof(ch));
 			if (ch == '\n')line++;
 		} while (ch == ' ' || ch == '\n' || ch == '\t');
-		if (ch == EOF){
+		
+		if (inf.eof() || ch == EOF){
 			return new Token(END);
 		}
+		
 		if (isalpha(ch)){
 			string str;
 			do{
 				str.push_back(ch);
+				if (inf.eof()) break;
 				inf.read(&ch, sizeof(ch));
-			} while (isalnum(ch));  //1×´Ì¬
-			inf.seekg(-1, ios::cur);//»ØÍËÒ»¸ö×Ö·û
+			} while (isalnum(ch) || ch == '_');  // æ”¯æŒå­—æ¯ã€æ•°å­—å’Œä¸‹åˆ’çº¿
+			if (!inf.eof()) {
+				inf.seekg(-1, ios::cur);//å›žé€€ä¸€ä¸ªå­—ç¬¦
+			}
 			if (words.find(str) == words.end()){
 				return new Word(ID, str);
 			}
 			return words[str];
 		}
+		
 		if (isdigit(ch)){
 			int value = 0;
 			if (ch == '0'){
+				if (inf.eof()) {
+					return new Integer(INT, 0);
+				}
 				inf.read(&ch, sizeof(ch));
 				if (ch == 'x' || ch == 'X'){
+					if (inf.eof()) {
+						return new Integer(INT, 0);
+					}
 					inf.read(&ch, sizeof(ch));
 					if (isdigit(ch) || (ch >= 'a'&&ch <= 'f') || (ch >= 'A'&&ch <= 'F')){
 						do{
@@ -133,36 +153,47 @@ public:
 							}else{
 								value = 16 * value + ch - '0';
 							}
+							if (inf.eof()) break;
 							inf.read(&ch, sizeof(ch));
 						} while (isdigit(ch) || (ch >= 'a'&&ch <= 'f') || (ch >= 'A'&&ch <= 'F'));
-						inf.seekg(-1, ios::cur);
+						if (!inf.eof()) {
+							inf.seekg(-1, ios::cur);
+						}
 						return new Integer(INT, value);
 					}else{
-						printf("´íÎóµÄÊ®Áù½øÖÆ!");
+						printf("é”™è¯¯çš„åå…­è¿›åˆ¶æ•°!");
+						return new Integer(INT, 0);
 					}
 				}else if (ch >= '0'&&ch <= '7'){
-					//°Ë½øÖÆÕûÊý
+					//å…«è¿›åˆ¶æ•°å­—
 					do{
 						value = 8 * value + ch - '0';
+						if (inf.eof()) break;
 						inf.read(&ch, sizeof(ch));
 					} while (ch >= '0'&&ch <= '7');
-					inf.seekg(-1, ios::cur);
+					if (!inf.eof()) {
+						inf.seekg(-1, ios::cur);
+					}
 					return new Integer(INT, value);
 				}else{
-					//Ê®½øÖÆÕûÊý0
+					//åè¿›åˆ¶æ•°å­—0
 					inf.seekg(-1, ios::cur);
 					return new Integer(INT, 0);
 				}
 			}else{
-				//³ý0ÍâÊ®½øÖÆÕûÊý
+				// 0-9çš„åè¿›åˆ¶æ•°
 				do{
 					value = 10 * value + ch - '0';
+					if (inf.eof()) break;
 					inf.read(&ch, sizeof(ch));
 				} while (isdigit(ch));
-				inf.seekg(-1, ios::cur);//»ØÍËÒ»¸ö×Ö·û
+				if (!inf.eof()) {
+					inf.seekg(-1, ios::cur);// ç§»é™¤æœ€åŽä¸€ä¸ªå­—ç¬¦
+				}
 				return new Integer(INT, value);
 			}
 		}
+		
 		return new Token(ch);
 	}
 };

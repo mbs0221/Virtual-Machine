@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <list>
+#include <map>
+#include <string>
 
 #include "inter.h"
-#include "vm.h"
+#include "code.h"
 
 using namespace std;
 
@@ -17,6 +19,7 @@ private:
 	Lexer *lexer;
 	Codes *cs;
 	map<string, Label*> lables;
+	
 	bool match(int kind){
 		if (s->kind == kind){
 			s = lexer->scan();
@@ -25,6 +28,7 @@ private:
 		s = lexer->scan();
 		return false;
 	}
+	
 	Code* data(){
 		Data *d = new Data;
 		d->opt = NULL;
@@ -37,6 +41,7 @@ private:
 		match(DATA);
 		return d;
 	}
+	
 	Code* store(){
 		Store *l = new Store;
 		l->line = lexer->line;
@@ -55,6 +60,7 @@ private:
 		match(INT);
 		return l;
 	}
+	
 	Code* halt(){
 		Halt *h = new Halt;
 		h->line = lexer->line;
@@ -63,6 +69,86 @@ private:
 		match(HALT);
 		return h;
 	}
+	
+	Code* call(){
+		Call *c = new Call;
+		c->line = lexer->line;
+		c->opt = CALL;
+		match(CALL);
+		if (lables.find(((Word*)s)->word) == lables.end()){
+			c->addr = new Label((Word*)s, cs->width);
+			lables[((Word*)s)->word] = c->addr;
+		}else{
+			c->addr = lables[((Word*)s)->word];
+		}
+		match(ID);
+		c->width = 3;
+		return c;
+	}
+	
+	Code* push(){
+		Push *p = new Push;
+		p->line = lexer->line;
+		p->opt = PUSH;
+		match(PUSH);
+		match('$');
+		p->reg = ((Integer*)s)->value;
+		match(INT);
+		p->width = 2;
+		return p;
+	}
+	
+	Code* pop(){
+		Pop *p = new Pop;
+		p->line = lexer->line;
+		p->opt = POP;
+		match(POP);
+		match('$');
+		p->reg = ((Integer*)s)->value;
+		match(INT);
+		p->width = 2;
+		return p;
+	}
+	
+	Code* mov(){
+		Mov *m = new Mov;
+		m->line = lexer->line;
+		m->opt = MOV;
+		match(MOV);
+		match('$');
+		m->reg1 = ((Integer*)s)->value;
+		match(INT);
+		match('$');
+		m->reg2 = ((Integer*)s)->value;
+		match(INT);
+		m->width = 3;
+		return m;
+	}
+	
+	Code* add(){
+		Add *a = new Add;
+		a->line = lexer->line;
+		a->opt = ADD;
+		match(ADD);
+		match('$');
+		a->reg1 = ((Integer*)s)->value;
+		match(INT);
+		match('#');
+		a->reg2 = ((Integer*)s)->value;
+		match(INT);
+		a->width = 4;
+		return a;
+	}
+	
+	Code* ret(){
+		Ret *r = new Ret;
+		r->line = lexer->line;
+		r->opt = RET;
+		r->width = 1;
+		match(RET);
+		return r;
+	}
+	
 	Code* load(){
 		Load *l = new Load;
 		l->line = lexer->line;
@@ -72,8 +158,8 @@ private:
 		l->reg = ((Integer*)s)->value;
 		match(INT);
 		switch (s->kind){
-		case '#':l->opt |= MR_A; match('#'); break;// ¡¢º¥ ˝
-		case '*':l->opt |= MR_B; match('*'); break;// ÷±Ω”—∞÷∑
+		case '#':l->opt |= MR_A; match('#'); break;// ÂØÑÂ≠òÂô®
+		case '*':l->opt |= MR_B; match('*'); break;// Áõ¥Êé•ÂØªÂùÄ
 		default:break;
 		}
 		l->addr = ((Integer*)s)->value;
@@ -81,6 +167,7 @@ private:
 		l->width = 4;
 		return l;
 	}
+	
 	Code* label(){
 		match(LABEL);
 		if (lables.find(((Word*)s)->word) == lables.end()){
@@ -92,6 +179,7 @@ private:
 		match(':');
 		return nullptr;
 	}
+	
 	Code* unary(){
 		Unary *u = new Unary;
 		u->line = lexer->line;
@@ -106,6 +194,7 @@ private:
 		u->width = 3;
 		return u;
 	}
+	
 	Code* arith(BYTE b){
 		Arith *a = new Arith;
 		a->line = lexer->line;
@@ -123,6 +212,7 @@ private:
 		a->width = 4;
 		return a;
 	}
+	
 	Code* jmp(BYTE b){
 		Jmp *j = new Jmp;
 		j->line = lexer->line;
@@ -138,23 +228,32 @@ private:
 		j->width = 3;
 		return j;
 	}
+	
 public:
 	int DS = 0;
 	int CS = 0;
+	
 	Asm(string fp){
 		lexer = new Lexer(fp);
 	}
+	
 	void parse(){
 		Code *c = new Code;
 		cs = new Codes;
 		s = lexer->scan();
-		while (s->kind != '#'){
+		while (s->kind != END){
 			switch (s->kind){
 			case ID:printf("[%3d]find id:%s\n", lexer->line, ((Word*)s)->word.c_str()); break;
 			case DATA:c = data(); break;
 			case LOAD:c = load(); break;
 			case STORE:c = store(); break;
 			case HALT:c = halt(); break;
+			case CALL:c = call(); break;
+			case RET:c = ret(); break;
+			case PUSH:c = push(); break;
+			case POP:c = pop(); break;
+			case MOV:c = mov(); break;
+			case ADD:c = add(); break;
 			case LABEL:c = label(); break;
 			case JE: c = jmp(JE); break;
 			case JNE: c = jmp(JNE); break;
@@ -174,8 +273,10 @@ public:
 			default:printf("[%3d]find unsupported instuction '%d'\n", lexer->line, s->kind); break;
 			}
 			if (c){ cs->codes.push_back(c); c->offset = cs->width; cs->width += c->width; }
+			s = lexer->scan(); // ËØªÂèñ‰∏ã‰∏Ä‰∏™token
 		}
 	}
+	
 	void write(FILE *fp){
 		fwrite(&DS, sizeof(WORD), 1, fp);
 		fwrite(&CS, sizeof(WORD), 1, fp);

@@ -10,7 +10,7 @@ struct Node{
 	}
 };
 
-//����ʽ
+//表达式
 struct Expr :Node{
 	char opt;
 	int label;
@@ -23,7 +23,7 @@ struct Expr :Node{
 
 int Expr::count = 0;
 
-// ��������ʽ
+// ��������ʽ
 struct Cond :Expr{
 	int True, False;
 	Expr *E1, *E2;
@@ -44,7 +44,7 @@ struct Cond :Expr{
 	}
 };
 
-// ��������ʽ
+// ��������ʽ
 struct Arith :Expr{
 	Expr *E1, *E2;
 	Arith(char opt, Expr *E1, Expr *E2) :Expr(opt), E1(E1), E2(E2){}
@@ -87,7 +87,7 @@ struct Number :Expr{
 	}
 };
 
-//���
+//���
 struct Stmt :Node{
 	int line;
 	int begin, next;
@@ -101,7 +101,7 @@ struct Stmt :Node{
 	}
 };
 
-//����
+//����
 struct Stmts :Stmt{
 	list<Stmt*> Ss;
 	virtual void code(FILE *fp){
@@ -261,6 +261,68 @@ struct Case :Stmt{
 		//	fprintf(fp, "= $%d $%d $%d", E->label, );
 		//	iter->second->code(fp);
 		//}
+	}
+};
+
+// 函数定义
+struct FuncDef :Stmt{
+	string name;
+	list<Id*> params;
+	Stmt *body;
+	virtual void code(FILE *fp){
+		Stmt::code(fp);
+		printf("func %s\n", name.c_str());
+		fprintf(fp, "label func_%s:\n", name.c_str());
+		// 设置栈帧：保存BP，设置新的BP
+		fprintf(fp, "push $%d\n", 0); // 保存BP（假设BP在寄存器0）
+		fprintf(fp, "mov $%d $%d\n", 0, 1); // BP = SP
+		// 从栈上获取参数并加载到寄存器
+		int paramOffset = 4; // 返回地址(2字节) + 旧BP(2字节)
+		list<Id*>::iterator iter;
+		for (iter = params.begin(); iter != params.end(); iter++){
+			fprintf(fp, "load $%d *%d\n", (*iter)->offset, paramOffset);
+			paramOffset += 2; // 每个参数2字节
+		}
+		body->code(fp);
+		// 恢复栈帧
+		fprintf(fp, "mov $%d $%d\n", 1, 0); // SP = BP
+		fprintf(fp, "pop $%d\n", 0); // 恢复BP
+		// 如果函数体末尾没有return语句，才添加ret指令
+		// 这里简化处理，不自动添加ret
+	}
+};
+
+// 函数调用
+struct FuncCall :Expr{
+	string name;
+	list<Expr*> args;
+	FuncCall(string n) :Expr('@'), name(n) {}
+	virtual void code(FILE *fp){
+		Expr::code(fp);
+		// 将参数压栈（从右到左）
+		list<Expr*>::reverse_iterator iter;
+		for (iter = args.rbegin(); iter != args.rend(); iter++){
+			(*iter)->code(fp);
+			fprintf(fp, "push $%d\n", (*iter)->label);
+		}
+		// 使用CALL指令调用函数
+		fprintf(fp, "call func_%s\n", name.c_str());
+		// 清理栈上的参数
+		fprintf(fp, "add $%d #%d\n", 0, args.size() * 2); // 调整栈指针
+	}
+};
+
+// 返回语句
+struct Return :Stmt{
+	Expr *value;
+	virtual void code(FILE *fp){
+		Stmt::code(fp);
+		printf("return\n");
+		if (value) {
+			value->code(fp);
+			fprintf(fp, "store $%d *ret_val\n", value->label);
+		}
+		fprintf(fp, "ret\n");
 	}
 };
 

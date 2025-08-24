@@ -1,0 +1,15 @@
+int x, y;
+
+func add(a, b) {
+    return a + b;
+}
+
+func multiply(a, b) {
+    return a * b;
+}
+
+x = 5;
+y = 10;
+x = add(x, y);
+y = multiply(x, 2);
+#
