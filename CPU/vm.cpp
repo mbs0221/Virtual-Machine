@@ -167,8 +167,8 @@ void CPU::execute(){
 	}
 }
 void CPU::trace(){
-	char a;
-	cin >> a;
+	// char a;
+	// cin >> a;  // 注释掉等待用户输入
 	cout << "[" << (int)RAM[0];
 	for (int i = 1; i < 12; i++){
 		cout << ' ';

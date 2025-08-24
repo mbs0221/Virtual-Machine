@@ -31,6 +31,6 @@ int main(){
 	//CPU.execute();
 	//CPU.store();
 	printf("执行结束\n");
-	std::cin >> a;
+	// std::cin >> a;
 	return 0;
 }

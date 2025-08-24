@@ -2,8 +2,8 @@
 
 void CPU::init(){
 	DS = CS = BP = IP = 0;
-	SS = 0xffff;// ջ��ַ
-	SP = SS;// ջָ��
+	SS = 0xffff;// ջ��ַ
+	SP = SS;// ջָ��
 }
 void CPU::load(FILE *fp){
 	fread(&DS, sizeof(WORD), 1, fp);
@@ -197,8 +197,8 @@ void CPU::execute(){
 }
 void CPU::trace(){
 #ifdef _DEBUG
-	char c;
-	cin >> c;
+	// char c;
+	// cin >> c;  // 注释掉等待用户输入
 	printf("[CYCLE:%04d DS:%04d CS:%04d IP:%04x]", CYCLE, DS, CS, IP);
 	printf("[%4d", RAM[DS]);
 	for (int i = DS + 1; i < CS; i++){
