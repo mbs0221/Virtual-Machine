@@ -11,7 +11,7 @@
 
 using namespace std;
 
-//-------------------------Òì³£´¦Àí------------------------
+//-------------------------ï¿½ì³£ï¿½ï¿½ï¿½ï¿½------------------------
 class MismatchException : public exception {
 	int line;
 public:
@@ -58,7 +58,7 @@ public:
 	l->addr = ((Integer*)s)->value; \
 	match(NUM); 
 
-//-------------------------»ã±à³ÌÐò------------------------
+//-------------------------ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½------------------------
 
 class Asm{
 private:
@@ -189,7 +189,7 @@ private:
 			match(ID);
 			return new Call(lexer->line, func);
 		}
-		throw exception("", 1);
+		throw std::exception();
 		return nullptr;
 	}
 	Code* match_load() {

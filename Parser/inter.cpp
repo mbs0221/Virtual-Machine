@@ -51,7 +51,7 @@ Value * CallExprAST::Codegen()
 	for (ExprAST* expr : args) {
 		expr->Codegen();
 	}
-	reverse(args.begin(), args.end());
+	// std::reverse(args.begin(), args.end());  // 暂时注释掉
 	for (ExprAST* expr : args) {
 
 	}

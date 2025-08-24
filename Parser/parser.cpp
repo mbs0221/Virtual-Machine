@@ -63,7 +63,8 @@ FunctionAST * Parser::parseTopLevelExpr()
 {
 	if (Stmt *Body = parseStmt()) {
 		// Make and anonymous proto
-		PrototypeAST *Proto = new PrototypeAST(Type::Void, "main", std::vector<ParameterAST*>());
+		std::vector<ParameterAST*> empty_args;
+		PrototypeAST *Proto = new PrototypeAST(Type::Void, "main", empty_args);
 		return new FunctionAST(Proto, Body);
 	}
 	return 0;
@@ -71,7 +72,7 @@ FunctionAST * Parser::parseTopLevelExpr()
 
 Stmt * Parser::parseStmt()
 {
-	// Óï·¨·ÖÎö
+	// ï¿½ï·¨ï¿½ï¿½ï¿½ï¿½
 	switch (s->kind) {
 	case BASIC:
 		return parseDeclaration();
@@ -122,14 +123,15 @@ Stmt * Parser::parseDeclaration()
 {
 	Type *type = (Type*)s;
 	match(BASIC);
-	top_scope[((Word*)s)->str] = type;
+	top_scope[((Word*)s)->str] = (AST*)type;
 	match(ID);
 	while (s->kind == ',') {
 		match(',');
-		top_scope[((Word*)s)->str] = type;
+		top_scope[((Word*)s)->str] = (AST*)type;
 		match(ID);
 	}
 	match(';');
+	return nullptr; // ä¸´æ—¶è¿”å›žnullptr
 }
 
 Stmt * Parser::parseIfElse()

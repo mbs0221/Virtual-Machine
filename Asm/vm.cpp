@@ -45,62 +45,62 @@ void CPU::execute(){
 		case DIV:
 		case MOD:
 		case CMP:
-			ALU.OP = OP;
+			alu.OP = OP;
 			if (TYPE == MR_BYTE){
 				ABUS = ReadB();
-				ALU.RA ^= ALU.RA;
-				ALU.RA |= REG[ABUS];
+				alu.RA ^= alu.RA;
+				alu.RA |= REG[ABUS];
 				ABUS = ReadB();
-				ALU.RB ^= ALU.RB;
-				ALU.RB |= REG[ABUS];
-				ALU.execute();
+				alu.RB ^= alu.RB;
+				alu.RB |= REG[ABUS];
+				alu.execute();
 				ABUS = ReadB();
-				REG[ABUS] = ALU.R;
+				REG[ABUS] = alu.R;
 			}else{
 				ABUS = ReadB();
-				ALU.RA ^= ALU.RA;
-				ALU.RA |= REG[ABUS];
-				ALU.RA |= REG[ABUS + 1] << 8;
+				alu.RA ^= alu.RA;
+				alu.RA |= REG[ABUS];
+				alu.RA |= REG[ABUS + 1] << 8;
 				ABUS = ReadB();
-				ALU.RB ^= ALU.RB;
-				ALU.RB |= REG[ABUS];
-				ALU.RB |= REG[ABUS + 1] << 8;
-				ALU.execute();
+				alu.RB ^= alu.RB;
+				alu.RB |= REG[ABUS];
+				alu.RB |= REG[ABUS + 1] << 8;
+				alu.execute();
 				ABUS = ReadB();
-				REG[ABUS] = ALU.R;
-				REG[ABUS + 1] = ALU.R >> 8;
+				REG[ABUS] = alu.R;
+				REG[ABUS + 1] = alu.R >> 8;
 			}
 			break;
 		case NEG:
-			ALU.OP = OP;
+			alu.OP = OP;
 			if (TYPE == MR_BYTE){
 				ABUS = ReadB();
-				ALU.RA ^= ALU.RA;
-				ALU.RA |= REG[ABUS];
-				ALU.execute();
+				alu.RA ^= alu.RA;
+				alu.RA |= REG[ABUS];
+				alu.execute();
 				ABUS = ReadB();
-				REG[ABUS] = ALU.R;
+				REG[ABUS] = alu.R;
 			}
 			else{
 				ABUS = ReadB();
-				ALU.RA ^= ALU.RA;
-				ALU.RA |= REG[ABUS];
-				ALU.RA |= REG[ABUS + 1] << 8;
-				ALU.execute();
+				alu.RA ^= alu.RA;
+				alu.RA |= REG[ABUS];
+				alu.RA |= REG[ABUS + 1] << 8;
+				alu.execute();
 				ABUS = ReadB();
-				REG[ABUS] = ALU.R;
-				REG[ABUS + 1] = ALU.R >> 8;
+				REG[ABUS] = alu.R;
+				REG[ABUS + 1] = alu.R >> 8;
 			}
 			break;
 		case JB:
-			if (ALU.FR&BIT_LT){
+			if (alu.FR&BIT_LT){
 				IP = ReadW();
 			}else{
 				IP++; IP++;
 			}
 			break;
 		case JG:
-			if (ALU.FR&BIT_GT){
+			if (alu.FR&BIT_GT){
 				IP = ReadW();
 			}
 			else{
@@ -108,14 +108,14 @@ void CPU::execute(){
 			}
 			break;
 		case JE:
-			if (ALU.FR & (BIT_GT | BIT_LT)){
+			if (alu.FR & (BIT_GT | BIT_LT)){
 				IP++; IP++;
 			}else{
 				IP = ReadW();
 			}
 			break;
 		case JNE:
-			if (ALU.FR & (BIT_GT | BIT_LT)){
+			if (alu.FR & (BIT_GT | BIT_LT)){
 				IP = ReadW();
 			}else{
 				IP++; IP++;

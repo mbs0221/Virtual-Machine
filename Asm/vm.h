@@ -16,17 +16,17 @@ using namespace std;
 #define BIT_NEG		0x0100
 #define BIT_ERR		0x0001
 
-// ÄÚ´æÑ°Ö··½Ê½
-//#define MR_A		0x80// immÁ¢¼´Ñ°Ö·
-//#define MR_B		0x40// addrÖ±½ÓÑ°Ö·
-//#define MR_C		0x20// [addr]¼ä½ÓÑ°Ö·
-//#define MR_D		0x10// reg¼Ä´æÆ÷Ñ°Ö·
-//#define MR_E		0x08// [reg]¼Ä´æÆ÷¼ä½ÓÑ°Ö·
-//#define MR_F		0x04// offsetÏà¶ÔÑ°Ö·
-//#define MR_G		0x02// [BP]»ùÖ·Ñ°Ö·
-//#define MR_H		0x01// [reg+addr]±äÖ·Ñ°Ö·
+// ï¿½Ú´ï¿½Ñ°Ö·ï¿½ï¿½Ê½
+#define MR_A		0x80// immï¿½ï¿½ï¿½ï¿½Ñ°Ö·
+#define MR_B		0x40// addrÖ±ï¿½ï¿½Ñ°Ö·
+//#define MR_C		0x20// [addr]ï¿½ï¿½ï¿½Ñ°Ö·
+//#define MR_D		0x10// regï¿½Ä´ï¿½ï¿½ï¿½Ñ°Ö·
+//#define MR_E		0x08// [reg]ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ°Ö·
+//#define MR_F		0x04// offsetï¿½ï¿½ï¿½Ñ°Ö·
+//#define MR_G		0x02// [BP]ï¿½ï¿½Ö·Ñ°Ö·
+//#define MR_H		0x01// [reg+addr]ï¿½ï¿½Ö·Ñ°Ö·
 
-// ×Ö/×Ö½Ú²Ù×÷
+// ï¿½ï¿½/ï¿½Ö½Ú²ï¿½ï¿½ï¿½
 #define MR_BYTE		0x80
 // [111][111][0][0]
 #define REG_SRC_MASK	0xE0
@@ -69,14 +69,14 @@ class CPU{
 private:
 	WORD LENGTH = 0;
 	BYTE REG[0x100];
-	WORD SP, BP, SI, DI;		// Í¨ÓÃ¼Ä´æÆ÷
-	WORD CS, DS, ES, SS;		// ¶Î¼Ä´æÆ÷
-	WORD PORT[0x100];			// I/O¶Ë¿Ú
-	WORD IP;					// ³ÌÐòÖ¸Õë
-	WORD IBUS, DBUS, ABUS;		// ÄÚ²¿×ÜÏß
-	BYTE RAM[0x10000];			// ÄÚ´æ
-	WORD CYCLE = 0;				// Ö´ÐÐÖÜÆÚ
-	ALU ALU;					// ALU
+	WORD SP, BP, SI, DI;		// Í¨ï¿½Ã¼Ä´ï¿½ï¿½ï¿½
+	WORD CS, DS, ES, SS;		// ï¿½Î¼Ä´ï¿½ï¿½ï¿½
+	WORD PORT[0x100];			// I/Oï¿½Ë¿ï¿½
+	WORD IP;					// ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+	WORD IBUS, DBUS, ABUS;		// ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
+	BYTE RAM[0x10000];			// ï¿½Ú´ï¿½
+	WORD CYCLE = 0;				// Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ALU alu;					// ALU
 	BYTE ReadB(){
 		return RAM[IP++];
 	}
@@ -87,19 +87,19 @@ private:
 		WORD W;
 		W ^= W;
 		W |= (WORD)RAM[IP++];
-		W |= (WORD)RAM[IP++] << 8;// ¸ß×Ö½Ú
+		W |= (WORD)RAM[IP++] << 8;// ï¿½ï¿½ï¿½Ö½ï¿½
 		return W;
 	}
 	WORD ReadW(WORD ADDR){
 		WORD W;
 		W ^= W;
 		W |= (WORD)RAM[ADDR];
-		W |= (WORD)RAM[ADDR + 1] << 8;// ¸ß×Ö½Ú
+		W |= (WORD)RAM[ADDR + 1] << 8;// ï¿½ï¿½ï¿½Ö½ï¿½
 		return W;
 	}
 	void WriteW(WORD ADDR, WORD DATA){
 		RAM[ADDR] = DATA;
-		RAM[ADDR + 1] = DATA >> 8;// ¸ß×Ö½Ú
+		RAM[ADDR + 1] = DATA >> 8;// ï¿½ï¿½ï¿½Ö½ï¿½
 	}
 public:
 	void init();
