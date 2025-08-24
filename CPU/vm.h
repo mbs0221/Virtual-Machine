@@ -28,10 +28,10 @@ typedef unsigned short int WORD;
 #define BIT_NEG		0x0200
 #define BIT_ERR		0x0001
 
-// ÄÚ´æÑ°Ö··½Ê½
-#define MR_A		0x00// 0000Á¢¼´Êý
-#define MR_B		0x40// 0100Ö±½ÓÑ°Ö·
-// ×Ö/×Ö½Ú²Ù×÷
+// ï¿½Ú´ï¿½Ñ°Ö·ï¿½ï¿½Ê½
+#define MR_A		0x00// 0000ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define MR_B		0x40// 0100Ö±ï¿½ï¿½Ñ°Ö·
+// ï¿½ï¿½/ï¿½Ö½Ú²ï¿½ï¿½ï¿½
 #define MR_BYTE		0x80
 // [111][111][0][0]
 #define REG_SRC_MASK	0xE0
@@ -71,13 +71,13 @@ class CPU{
 private:
 	
 	BYTE REG[0x100];
-	WORD SP, BP, SI, DI;				// Í¨ÓÃ¼Ä´æÆ÷
-	WORD CS, DS, ES, SS;				// ¶Î¼Ä´æÆ÷
-	WORD IN[0x100], OUT[0x100];			// I/O¶Ë¿Ú
-	WORD IP;							// ³ÌÐòÖ¸Õë
-	WORD IBUS, DBUS, ABUS;				// ÄÚ²¿×ÜÏß
-	BYTE RAM[0x10000];					// ÄÚ´æ
-	ALU ALU;							// ALU
+	WORD SP, BP, SI, DI;				// Í¨ï¿½Ã¼Ä´ï¿½ï¿½ï¿½
+	WORD CS, DS, ES, SS;				// ï¿½Î¼Ä´ï¿½ï¿½ï¿½
+	WORD IN[0x100], OUT[0x100];			// I/Oï¿½Ë¿ï¿½
+	WORD IP;							// ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+	WORD IBUS, DBUS, ABUS;				// ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
+	BYTE RAM[0x10000];					// ï¿½Ú´ï¿½
+	ALU alu;							// ALU
 	BYTE ReadB(){
 		return RAM[IP++];
 	}

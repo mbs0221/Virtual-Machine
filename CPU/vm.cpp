@@ -2,8 +2,8 @@
 
 void CPU::init(){
 	DS = CS = BP = IP = 0;
-	SS = 0xffff;// Õ»»ùÖ·
-	SP = SS;// Õ»Ö¸Õë
+	SS = 0xffff;// Õ»ï¿½ï¿½Ö·
+	SP = SS;// Õ»Ö¸ï¿½ï¿½
 }
 void CPU::load(string fp){
 	WORD LENGTH = 0;
@@ -35,44 +35,44 @@ void CPU::execute(){
 		case DIV:
 		case MOD:
 		case CMP:
-			ALU.OP = OP;
+			alu.OP = OP;
 			if (TYPE == MR_BYTE){
 				ABUS = ReadB();
-				ALU.RA ^= ALU.RA;
-				ALU.RA |= REG[ABUS];
+				alu.RA ^= alu.RA;
+				alu.RA |= REG[ABUS];
 				ABUS = ReadB();
-				ALU.RB ^= ALU.RB;
-				ALU.RB |= REG[ABUS];// µÍÎ»
-				ALU.execute();
+				alu.RB ^= alu.RB;
+				alu.RB |= REG[ABUS];// ï¿½ï¿½Î»
+				alu.execute();
 				ABUS = ReadB();
-				REG[ABUS] = ALU.R;// µÍÎ»
-				cout << "BYTE:" << (int)ALU.R << "=";
-				cout << (int)ALU.RA << " OP " << (int)ALU.RB << endl;
+				REG[ABUS] = alu.R;// ï¿½ï¿½Î»
+				cout << "BYTE:" << (int)alu.R << "=";
+				cout << (int)alu.RA << " OP " << (int)alu.RB << endl;
 			}else{
 				ABUS = ReadB();
 				ABUS <<= 1;
 				cout << "ABUS:" << ABUS << ",";
-				ALU.RA ^= ALU.RA;
-				ALU.RA |= REG[ABUS] << 8;// ¸ßÎ»
-				ALU.RA |= REG[ABUS + 1];// µÍÎ»
+				alu.RA ^= alu.RA;
+				alu.RA |= REG[ABUS] << 8;// ï¿½ï¿½Î»
+				alu.RA |= REG[ABUS + 1];// ï¿½ï¿½Î»
 				ABUS = ReadB();
 				ABUS <<= 1;
 				cout << "ABUS:" << ABUS << ",";
-				ALU.RB ^= ALU.RB;
-				ALU.RB |= REG[ABUS] << 8;// ¸ßÎ»
-				ALU.RB |= REG[ABUS + 1];// µÍÎ»
-				ALU.execute();
+				alu.RB ^= alu.RB;
+				alu.RB |= REG[ABUS] << 8;// ï¿½ï¿½Î»
+				alu.RB |= REG[ABUS + 1];// ï¿½ï¿½Î»
+				alu.execute();
 				ABUS = ReadB();
 				ABUS <<= 1;
 				cout << "ABUS:" << ABUS << endl;
-				REG[ABUS] = ALU.R >> 8;// ¸ßÎ»
-				REG[ABUS + 1] = ALU.R;// µØÎ»
-				cout << "WORD:" << ALU.R << "=";
-				cout << ALU.RA << " OP " << ALU.RB << endl;
+				REG[ABUS] = alu.R >> 8;// ï¿½ï¿½Î»
+				REG[ABUS + 1] = alu.R;// ï¿½ï¿½Î»
+				cout << "WORD:" << alu.R << "=";
+				cout << alu.RA << " OP " << alu.RB << endl;
 			}
 			break;
 		case JE:
-			if (ALU.FR & BIT_EQ){
+			if (alu.FR & BIT_EQ){
 				IP = ReadW();
 				cout << "JE " << dec << (int)IP << endl;
 			}else{
@@ -80,7 +80,7 @@ void CPU::execute(){
 			}
 			break;
 		case JNE:
-			if (ALU.FR & BIT_EQ){
+			if (alu.FR & BIT_EQ){
 				IP++; IP++;
 			}else{
 				IP = ReadW();

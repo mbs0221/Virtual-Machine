@@ -15,7 +15,7 @@ public:
 	virtual Value * Codegen() = 0;
 };
 
-// Óï¾ä
+// ï¿½ï¿½ï¿½
 class Stmt : public AST{
 public:
 	int line;
@@ -29,7 +29,7 @@ public:
 
 int Stmt::label = 0;
 
-// Óï¾ä¿é
+// ï¿½ï¿½ï¿½ï¿½
 class Block : public Stmt{
 	vector<Stmt*> block;
 public:
@@ -37,7 +37,7 @@ public:
 	Value * Codegen();
 };
 
-//±í´ïÊ½
+//ï¿½ï¿½ï¿½ï¿½Ê½
 class ExprAST : public Stmt{
 public:
 	Type *type;
@@ -74,7 +74,7 @@ class AssignExprAST : public VariableExprAST {
 	ExprAST *rhs;
 public:
 	AssignExprAST(const string &name, ExprAST *rhs)
-		: VariableExprAST(name), rhs(rhs) {  }
+		: VariableExprAST(name, nullptr), rhs(rhs) {  }
 	Value * Codegen();
 };
 
@@ -89,7 +89,7 @@ class AccessExprAST : public VariableExprAST {
 	ExprAST *loc;
 public:
 	AccessExprAST(const string &name, ExprAST *loc)
-		: VariableExprAST(name), loc(loc) {  }
+		: VariableExprAST(name, nullptr), loc(loc) {  }
 	Value * Codegen();
 };
 
@@ -126,7 +126,7 @@ public:
 	Value * Codegen();
 };
 
-// ¿ØÖÆÁ÷
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class IfElse : public Stmt{
 	ExprAST *cond;
 	Stmt *body_t;
@@ -204,7 +204,7 @@ public:
 	Value * Codegen();
 };
 
-// »·¾³
+// ï¿½ï¿½ï¿½ï¿½
 typedef map<string, AST*> SymbolTable;
 
 class ParameterAST : public AST{
