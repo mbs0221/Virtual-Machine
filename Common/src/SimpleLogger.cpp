@@ -52,14 +52,7 @@ void SimpleLogger::log(LogLevel level, const std::string& module, const std::str
     logMessage << timestamp.str() << " [" << getLevelString(level) << "] " 
                << module << ": " << message << std::endl;
     
-    // 输出到控制台
-    if (level >= WARN) {
-        std::cerr << logMessage.str();
-    } else {
-        std::cout << logMessage.str();
-    }
-    
-    // 输出到文件
+    // 只输出到文件，不输出到控制台
     if (logFile_ && logFile_->is_open()) {
         *logFile_ << logMessage.str();
         logFile_->flush();
