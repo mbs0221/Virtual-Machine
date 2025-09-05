@@ -1,6 +1,9 @@
 # Asm模块 - 汇编器
 set(ASM_SOURCES
     main.cpp
+    asm.cpp
+    lexer.cpp
+    inter.cpp
 )
 
 # 创建可执行文件

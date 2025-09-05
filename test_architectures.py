@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-架构比较测试脚本
-用于测试和比较Toy和RV32两种架构
+架构测试脚本
+用于测试Toy架构
 """
 
 import os
@@ -49,7 +49,7 @@ class ArchitectureTester:
     
     def check_executables(self):
         """检查可执行文件是否存在"""
-        executables = ["vm", "toy_cpu", "rv32_cpu"]
+        executables = ["vm", "toy_cpu"]
         missing = []
         
         for exe in executables:
@@ -87,13 +87,6 @@ class ArchitectureTester:
                     0x00,  # HALT
                 ]
             },
-            "rv32": {
-                "name": "RV32测试程序", 
-                "description": "简单的RV32架构测试程序",
-                "instructions": [
-                    0x00000073,  # ECALL
-                ]
-            }
         }
         
         created_files = {}
@@ -109,7 +102,7 @@ class ArchitectureTester:
                     f.write((0x0001).to_bytes(2, byteorder='little'))  # LENGTH
                     f.write(program["instructions"][0].to_bytes(1, byteorder='little'))
                 else:
-                    # RV32格式：直接指令
+                    # 其他格式：直接指令
                     for instruction in program["instructions"]:
                         f.write(instruction.to_bytes(4, byteorder='little'))
             
@@ -160,24 +153,15 @@ class ArchitectureTester:
                 "设计理念": "教学用简单架构",
                 "特点": "支持字节和字操作，函数调用"
             },
-            "RV32": {
-                "字长": "32位", 
-                "寄存器": "32个",
-                "内存": "64KB",
-                "指令格式": "固定32位",
-                "设计理念": "现代RISC设计",
-                "特点": "标准RISC-V指令集，开源"
-            }
         }
         
-        print("架构特性对比:")
-        print(f"{'特性':<12} {'Toy':<20} {'RV32':<20}")
-        print("-" * 52)
+        print("架构特性:")
+        print(f"{'特性':<12} {'Toy':<20}")
+        print("-" * 32)
         
         for feature in ["字长", "寄存器", "内存", "指令格式", "设计理念", "特点"]:
             toy_val = comparison["Toy"][feature]
-            rv32_val = comparison["RV32"][feature]
-            print(f"{feature:<12} {toy_val:<20} {rv32_val:<20}")
+            print(f"{feature:<12} {toy_val:<20}")
         
         return comparison
     

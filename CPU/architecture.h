@@ -32,8 +32,7 @@ public:
 class ArchitectureFactory {
 public:
     enum ArchitectureType {
-        TOY,
-        RV32
+        TOY
     };
     
     static Architecture* create_architecture(ArchitectureType type);

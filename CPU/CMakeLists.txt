@@ -3,7 +3,6 @@ set(CPU_SOURCES
     main.cpp
     architecture.cpp
     toy.cpp
-    rv32.cpp
 )
 
 # 创建可执行文件

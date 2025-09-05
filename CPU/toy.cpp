@@ -17,7 +17,7 @@ void ToyCPU::reset() {
     // 初始化寄存器
     SP = TOY_MEM_SIZE - 4;
     BP = SI = DI = 0;
-    CS = DS = ES = SS = 0;
+    CS = DS = ES = SS = FS = GS = 0;
     IP = 0;
     IBUS = DBUS = ABUS = 0;
     
@@ -350,6 +350,10 @@ void ToyCPU::dump_registers() {
     std::cout << "DI: " << DI << std::endl;
     std::cout << "CS: " << CS << std::endl;
     std::cout << "DS: " << DS << std::endl;
+    std::cout << "ES: " << ES << std::endl;
+    std::cout << "SS: " << SS << std::endl;
+    std::cout << "FS: " << FS << std::endl;
+    std::cout << "GS: " << GS << std::endl;
     std::cout << "IP: " << IP << std::endl;
     
     // 显示前16个寄存器

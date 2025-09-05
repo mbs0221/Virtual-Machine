@@ -17,7 +17,7 @@ enum Tag{
 	NEG,                           // 一元运算
 	LOOP,                          // 循环指令
 	// 关键字
-	ID = 256, INT, END, LABEL, DATA, CODE, STACK
+	ID = 256, INT, END, LABEL, DATA, CODE, STACK, VAR, FS, GS
 };
 
 // Toy架构寻址模式

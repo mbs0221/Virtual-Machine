@@ -83,7 +83,7 @@ class ToyCPU : public Architecture {
 private:
     BYTE REG[TOY_REG_COUNT];        // 寄存器文件
     WORD SP, BP, SI, DI;            // 通用寄存器
-    WORD CS, DS, ES, SS;            // 段寄存器
+    WORD CS, DS, ES, SS, FS, GS;    // 段寄存器
     WORD IN[TOY_REG_COUNT], OUT[TOY_REG_COUNT]; // I/O端口
     WORD IP;                        // 指令指针
     WORD IBUS, DBUS, ABUS;          // 内部总线

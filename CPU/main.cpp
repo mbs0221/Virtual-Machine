@@ -8,15 +8,12 @@ void print_usage(const char* program_name) {
     std::cout << std::endl;
     std::cout << "支持的架构:" << std::endl;
     std::cout << "  toy    - Toy架构 (16位，256寄存器)" << std::endl;
-    std::cout << "  rv32   - RV32架构 (32位RISC-V)" << std::endl;
     std::cout << std::endl;
     std::cout << "示例:" << std::endl;
     std::cout << "  " << program_name << " toy program.bin" << std::endl;
-    std::cout << "  " << program_name << " rv32 program.bin" << std::endl;
     std::cout << std::endl;
     std::cout << "架构信息:" << std::endl;
     std::cout << "  Toy: " << ArchitectureFactory::get_architecture_description(ArchitectureFactory::TOY) << std::endl;
-    std::cout << "  RV32: " << ArchitectureFactory::get_architecture_description(ArchitectureFactory::RV32) << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -29,8 +26,6 @@ int main(int argc, char* argv[]) {
     ArchitectureFactory::ArchitectureType arch_type;
     if (strcmp(argv[1], "toy") == 0) {
         arch_type = ArchitectureFactory::TOY;
-    } else if (strcmp(argv[1], "rv32") == 0) {
-        arch_type = ArchitectureFactory::RV32;
     } else {
         std::cerr << "错误: 不支持的架构 '" << argv[1] << "'" << std::endl;
         print_usage(argv[0]);

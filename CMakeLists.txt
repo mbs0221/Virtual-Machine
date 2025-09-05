@@ -23,10 +23,9 @@ add_subdirectory(CPU)
 
 # 架构模块配置
 message(STATUS "  Toy Architecture module configured")
-message(STATUS "  RV32 Architecture module configured")
 
 # 创建统一的可执行文件
-add_executable(vm CPU/main.cpp CPU/architecture.cpp CPU/toy.cpp CPU/rv32.cpp)
+add_executable(vm CPU/main.cpp CPU/architecture.cpp CPU/toy.cpp)
 target_include_directories(vm PRIVATE CPU)
 
 # 设置VM的属性
@@ -39,7 +38,7 @@ set_target_properties(vm PROPERTIES
 target_compile_options(vm PRIVATE -Wall -Wextra)
 
 # 创建独立的Toy CPU可执行文件
-add_executable(toy_cpu CPU/toy_main.cpp CPU/toy.cpp CPU/architecture.cpp CPU/rv32.cpp)
+add_executable(toy_cpu CPU/toy_main.cpp CPU/toy.cpp CPU/architecture.cpp)
 target_include_directories(toy_cpu PRIVATE CPU)
 set_target_properties(toy_cpu PROPERTIES
     OUTPUT_NAME "toy_cpu"
@@ -47,14 +46,6 @@ set_target_properties(toy_cpu PROPERTIES
 )
 target_compile_options(toy_cpu PRIVATE -Wall -Wextra)
 
-# 创建独立的RV32 CPU可执行文件
-add_executable(rv32_cpu CPU/rv32_main.cpp CPU/rv32.cpp CPU/architecture.cpp CPU/toy.cpp)
-target_include_directories(rv32_cpu PRIVATE CPU)
-set_target_properties(rv32_cpu PROPERTIES
-    OUTPUT_NAME "rv32_cpu"
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-)
-target_compile_options(rv32_cpu PRIVATE -Wall -Wextra)
 
 message(STATUS "Configuring done")
 message(STATUS "Generating done")
