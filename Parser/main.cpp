@@ -41,6 +41,9 @@ int main(int argc, char* argv[]) {
     // 开始语法分析
     printf("开始语法分析\n");
     
+    // 重置寄存器分配器
+    RegisterAllocator::reset();
+    
     Parser p(inputFile);
     Stmt *st = p.parse();
     
@@ -53,10 +56,15 @@ int main(int argc, char* argv[]) {
     }
     
     st->code(fp);
-    fprintf(fp, "halt\n#%%\n");
+    fprintf(fp, "halt\n");
     fclose(fp);
     
     printf("语法分析完成\n");
+    
+    // 打印寄存器使用统计
+    printf("寄存器分配统计:\n");
+    RegisterAllocator::printStatus();
+    printf("最大使用寄存器数: %d\n", RegisterAllocator::getMaxUsed());
     
     return 0;
 }

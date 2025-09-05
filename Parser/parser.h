@@ -16,7 +16,6 @@ private:
 			s = lexer->scan();
 			return true;
 		}
-		s = lexer->scan();
 		printf("%d not matched.\n", kind);
 		return false;
 	}
@@ -40,15 +39,25 @@ private:
 	{
 		Stmt *st = nullptr;
 		switch (s->kind){
-		case INT:st = stmt_decl(); break;
+		case INT:
+		case CHAR:
+		case FLOAT:
+		case BOOL:
+		case VOID:
+			st = stmt_decl(); break;
 		case ID:st = stmt_assign(); break;
 		case IF:st = stmt_if(); break;
 		case WHILE:st = stmt_while(); break;
 		case DO:st = stmt_do(); break;
 		case FOR:st = stmt_for(); break;
+		case SWITCH:st = stmt_switch(); break;
 		case CASE:st = stmt_case(); break;
 		case FUNC:st = stmt_func(); break;
 		case RETURN:st = stmt_return(); break;
+		case PRINT:st = stmt_print(); break;
+		case SCAN:st = stmt_scan(); break;
+		case BREAK:st = stmt_break(); break;
+		case CONTINUE:st = stmt_continue(); break;
 		case ';':match(';'); break;
 		case '{':st = stmts(); break;
 		default:match(s->kind); break;
@@ -69,16 +78,42 @@ private:
 	Stmt* stmt_decl(){
 		Decl *d = new Decl;
 		d->line = lexer->line;
-		match(INT);
-		putId(new Id(Type::Int, (Word*)s, width));
+		
+		// 获取类型
+		Type *type = nullptr;
+		switch (s->kind){
+			case INT: type = Type::Int; match(INT); break;
+			case CHAR: type = Type::Char; match(CHAR); break;
+			case FLOAT: type = Type::Float; match(FLOAT); break;
+			case BOOL: type = Type::Bool; match(BOOL); break;
+			case VOID: type = Type::Void; match(VOID); break;
+			default: printf("未知类型\n"); return nullptr;
+		}
+		
+		// 保存变量名
+		string varName = ((Word*)s)->word;
+		putId(new Id(type, (Word*)s, width));
 		d->ids.push_back(getId());
-		width += Type::Int->width;
+		width += type->width;
 		match(ID);
+		
+		// 检查是否有初始化
+		if (s->kind == '='){
+			match('=');
+			// 创建赋值语句
+			Assign *a = new Assign;
+			a->line = lexer->line;
+			a->E1 = getId(varName);
+			a->E2 = expr_expr();
+			match(';');
+			return a;
+		}
+		
 		while (s->kind == ','){
 			match(',');
-			putId(new Id(Type::Int, (Word*)s, width));
+			putId(new Id(type, (Word*)s, width));
 			d->ids.push_back(getId());
-			width += Type::Int->width;
+			width += type->width;
 			match(ID);
 		}
 		match(';');
@@ -237,6 +272,10 @@ private:
 			break;
 		}
 		case INT:  e = new Number((Integer*)s); match(INT); break;
+		case FLOAT: e = new FloatNumber((Float*)s); match(FLOAT); break;
+		case STRING: e = new StringLiteral((String*)s); match(STRING); break;
+		case TRUE: e = new BoolLiteral(true); match(TRUE); break;
+		case FALSE: e = new BoolLiteral(false); match(FALSE); break;
 		default: printf("F->('%c')\n", s->kind); match(s->kind); break;
 		}
 		return e;
@@ -252,12 +291,28 @@ private:
 		match('(');
 		// 解析参数列表
 		if (s->kind != ')'){
+			// 跳过类型关键字
+			if (s->kind == INT) match(INT);
+			else if (s->kind == CHAR) match(CHAR);
+			else if (s->kind == FLOAT) match(FLOAT);
+			else if (s->kind == BOOL) match(BOOL);
+			else if (s->kind == VOID) match(VOID);
+			
+			// 现在s指向参数名
 			putId(new Id(Type::Int, (Word*)s, width));
 			f->params.push_back(getId());
 			width += Type::Int->width;
 			match(ID);
 			while (s->kind == ','){
 				match(',');
+				// 跳过类型关键字
+				if (s->kind == INT) match(INT);
+				else if (s->kind == CHAR) match(CHAR);
+				else if (s->kind == FLOAT) match(FLOAT);
+				else if (s->kind == BOOL) match(BOOL);
+				else if (s->kind == VOID) match(VOID);
+				
+				// 现在s指向参数名
 				putId(new Id(Type::Int, (Word*)s, width));
 				f->params.push_back(getId());
 				width += Type::Int->width;
@@ -279,6 +334,80 @@ private:
 		}
 		match(';');
 		return r;
+	}
+	
+	// 打印语句解析
+	Stmt* stmt_print(){
+		Print *p = new Print;
+		p->line = lexer->line;
+		match(PRINT);
+		match('(');
+		if (s->kind != ')'){
+			p->args.push_back(expr_expr());
+			while (s->kind == ','){
+				match(',');
+				p->args.push_back(expr_expr());
+			}
+		}
+		match(')');
+		match(';');
+		return p;
+	}
+	
+	// 输入语句解析
+	Stmt* stmt_scan(){
+		Scan *sc = new Scan;
+		sc->line = lexer->line;
+		match(SCAN);
+		match('(');
+		sc->var = getId();
+		match(ID);
+		match(')');
+		match(';');
+		return sc;
+	}
+	
+	// 中断语句解析
+	Stmt* stmt_break(){
+		Break *b = new Break;
+		b->line = lexer->line;
+		match(BREAK);
+		match(';');
+		return b;
+	}
+	
+	// 继续语句解析
+	Stmt* stmt_continue(){
+		Continue *c = new Continue;
+		c->line = lexer->line;
+		match(CONTINUE);
+		match(';');
+		return c;
+	}
+	
+	// 开关语句解析
+	Stmt* stmt_switch(){
+		Switch *sw = new Switch;
+		sw->line = lexer->line;
+		match(SWITCH);
+		match('(');
+		sw->expr = expr_expr();
+		match(')');
+		match('{');
+		while (s->kind == CASE){
+			match(CASE);
+			Integer *caseValue = (Integer*)s;
+			match(INT);
+			match(':');
+			sw->cases[caseValue->value] = stmt();
+		}
+		if (s->kind == DEFAULT){
+			match(DEFAULT);
+			match(':');
+			sw->defaultCase = stmt();
+		}
+		match('}');
+		return sw;
 	}
 	
 
