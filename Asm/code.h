@@ -10,19 +10,21 @@ enum Tag{
 	ADD, SUB, MUL, DIV, MOD, CMP,  // 整数运算
 	SHL, SHR, SAL, SAR, SRL, SRR,  // 移位运算
 	MOV, IN, OUT,                  // 数据传输
-	LOAD, STORE,                   // 内存访问
+	LOAD, STORE, LEA,              // 内存访问
 	PUSH, POP,                     // 栈操作
 	JMP, JNE, JG, JE, JB, JGE, JBE, // 跳转指令
 	CALL, RET,                     // 函数调用
 	NEG,                           // 一元运算
 	LOOP,                          // 循环指令
+	INT_INST = 50, IRET = 51, CLI_INST = 52, STI_INST = 53,     // 中断指令
 	// 关键字
-	ID = 256, INT, END, LABEL, DATA, CODE, STACK, VAR, FS, GS
+	ID = 256, INT, STRING, COMMENT, END, LABEL, DATA, CODE, STACK, VAR, FS, GS
 };
 
 // Toy架构寻址模式
 #define MR_A        0x00  // 0000 寄存器寻址
 #define MR_B        0x40  // 0100 直接寻址
 #define MR_BYTE     0x80  // 字节/字操作
+#define MR_INDIRECT 0x20  // 0010 寄存器间接寻址 [$reg]
 
 #endif

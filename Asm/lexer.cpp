@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "Common/Logger.h"
 
 // 全局变量定义
 Type* Type::Int = new Type(INT, "int", 2);
@@ -49,6 +50,17 @@ string Integer::code() {
 	return "";
 }
 
+// String类实现
+string String::place() {
+	ostringstream s;
+	s << "\"" << value << "\"";
+	return s.str();
+}
+
+string String::code() {
+	return value;
+}
+
 // Lexer类实现
 Lexer::Lexer(string fp) {
 	words["data"] = new Word(DATA, "data");
@@ -56,6 +68,7 @@ Lexer::Lexer(string fp) {
 	words["int"] = new Word(INT, "int");
 	words["load"] = new Word(LOAD, "load");
 	words["store"] = new Word(STORE, "store");
+	words["lea"] = new Word(LEA, "lea");
 	words["halt"] = new Word(HALT, "halt");
 	words["label"] = new Word(LABEL, "label");
 	words["jmp"] = new Word(JMP, "jmp");
@@ -63,22 +76,43 @@ Lexer::Lexer(string fp) {
 	words["je"] = new Word(JE, "je");
 	words["jne"] = new Word(JNE, "jne");
 	words["jg"] = new Word(JG, "jg");
+	words["jge"] = new Word(JGE, "jge");
+	words["jbe"] = new Word(JBE, "jbe");
 	words["call"] = new Word(CALL, "call");
 	words["ret"] = new Word(RET, "ret");
 	words["push"] = new Word(PUSH, "push");
 	words["pop"] = new Word(POP, "pop");
 	words["mov"] = new Word(MOV, "mov");
+	words["in"] = new Word(IN, "in");
+	words["out"] = new Word(OUT, "out");
+	words["neg"] = new Word(NEG, "neg");
+	words["loop"] = new Word(LOOP, "loop");
 	words["add"] = new Word(ADD, "add");
+	words["sub"] = new Word(SUB, "sub");
+	words["mul"] = new Word(MUL, "mul");
+	words["div"] = new Word(DIV, "div");
+	words["mod"] = new Word(MOD, "mod");
+	words["cmp"] = new Word(CMP, "cmp");
+	words["shl"] = new Word(SHL, "shl");
+	words["shr"] = new Word(SHR, "shr");
+	words["sal"] = new Word(SAL, "sal");
+	words["sar"] = new Word(SAR, "sar");
+	words["srl"] = new Word(SRL, "srl");
+	words["srr"] = new Word(SRR, "srr");
 	words["var"] = new Word(VAR, "var");
 	words["fs"] = new Word(FS, "fs");
 	words["gs"] = new Word(GS, "gs");
+	words["int"] = new Word(INT_INST, "int");
+	words["iret"] = new Word(IRET, "iret");
+	words["cli"] = new Word(CLI_INST, "cli");
+	words["sti"] = new Word(STI_INST, "sti");
 	inf.open(fp, ios::in);
 }
 
 Lexer::~Lexer() {
 	inf.close();
 	words.clear();
-	printf("~Lexer");
+	// 移除析构函数的日志，避免在程序结束时输出到屏幕
 }
 
 Token* Lexer::scan() {
@@ -98,15 +132,26 @@ Token* Lexer::scan() {
 		return new Token(END);
 	}
 	
-	// 根据字符类型分发到相应的解析函数
+	
+		// 根据字符类型分发到相应的解析函数
 	if (isalpha(ch)) {
 		return scanIdentifier(ch);
 	}
-	
+
 	if (isdigit(ch)) {
 		return scanNumber(ch);
 	}
-	
+
+	// 字符串字面量
+	if (ch == '"') {
+		return scanString();
+	}
+
+	// 注释处理
+	if (ch == ';') {
+		return scanComment();
+	}
+
 	// 其他字符（如运算符、分隔符等）
 	return new Token(ch);
 }
@@ -135,6 +180,7 @@ Token* Lexer::scanIdentifier(char ch) {
 		str.push_back(ch);
 		if (inf.eof()) break;
 		inf.read(&ch, sizeof(ch));
+		if (inf.eof()) break;  // 添加额外的文件末尾检查
 	} while (isalnum(ch) || ch == '_');  // 支持字母、数字和下划线
 	
 	// 回退一个字符
@@ -227,7 +273,7 @@ Token* Lexer::scanHexadecimal(char ch) {
 	
 	if (!isdigit(nextCh) && 
 		!((nextCh >= 'a' && nextCh <= 'f') || (nextCh >= 'A' && nextCh <= 'F'))) {
-		printf("错误的十六进制数!");
+		LOG_ERROR("Asm.Lexer", "错误的十六进制数!");
 		return new Integer(INT, 0);
 	}
 	
@@ -245,10 +291,60 @@ Token* Lexer::scanHexadecimal(char ch) {
 			 (nextCh >= 'a' && nextCh <= 'f') || 
 			 (nextCh >= 'A' && nextCh <= 'F'));
 	
-	// 回退一个字符
-	if (!inf.eof()) {
-		inf.seekg(-1, ios::cur);
+	        // 回退一个字符
+        if (!inf.eof()) {
+                inf.seekg(-1, ios::cur);
+        }
+
+        return new Integer(INT, value);
+}
+
+// 解析字符串字面量
+Token* Lexer::scanString() {
+	string value = "";
+	char ch;
+	
+	while (!inf.eof()) {
+		inf.read(&ch, sizeof(ch));
+		if (ch == '"') {
+			// 字符串结束
+			break;
+		} else if (ch == '\\') {
+			// 转义字符
+			if (!inf.eof()) {
+				inf.read(&ch, sizeof(ch));
+				switch (ch) {
+					case 'n': value += '\n'; break;
+					case 't': value += '\t'; break;
+					case 'r': value += '\r'; break;
+					case '\\': value += '\\'; break;
+					case '"': value += '"'; break;
+					default: value += ch; break;
+				}
+			}
+		} else {
+			value += ch;
+		}
 	}
 	
-	return new Integer(INT, value);
+	return new String(STRING, value);
+}
+
+// 解析注释
+Token* Lexer::scanComment() {
+	string comment = "";
+	char ch;
+	
+	while (!inf.eof()) {
+		inf.read(&ch, sizeof(ch));
+		if (ch == '\n') {
+			line++; // 注释结束，行号增加
+			break;
+		}
+		comment += ch;
+	}
+	
+	// 返回一个特殊的注释Token，汇编器会忽略它
+	// 注意：这里不需要调用scan()，因为主循环会处理下一个token
+	return new Token(COMMENT);
 }

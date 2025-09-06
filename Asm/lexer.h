@@ -43,6 +43,13 @@ struct Integer :Token {
 	virtual string code();
 };
 
+struct String :Token {
+	string value;
+	String(int tag, string value) :Token(tag), value(value) { }
+	virtual string place();
+	virtual string code();
+};
+
 // 词法分析器
 class Lexer {
 	ifstream inf;
@@ -61,6 +68,8 @@ private:
 	Token* scanDecimal(char ch);
 	Token* scanOctal(char ch);
 	Token* scanHexadecimal(char ch);
+	Token* scanString();
+	Token* scanComment();
 };
 
 #endif
