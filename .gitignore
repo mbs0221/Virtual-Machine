@@ -48,6 +48,13 @@ build/
 *.asm
 *.bin
 *.s
+*.pyc
+
+# Github Plugins
+.github
+
+# Python cache
+__pycache__
 
 # Visual C++ cache files
 ipch/

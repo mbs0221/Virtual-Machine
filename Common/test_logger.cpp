@@ -8,7 +8,7 @@ int main() {
     Common::Logger& logger = Common::Logger::getInstance();
     
     // 使用默认配置初始化
-    if (!logger.initializeDefault("DEBUG", "logs/test.log")) {
+    if (!logger.initializeDefault("DEBUG", "Logs/test.log")) {
         std::cerr << "Failed to initialize logger" << std::endl;
         return 1;
     }

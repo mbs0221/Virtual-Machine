@@ -31,6 +31,7 @@ private:
 	WORD parse_address_value();
 	WORD parse_direct_address_value();
 	WORD parse_indirect_register_value();
+	WORD parse_pc_relative_value();
 	bool parse_addressing_mode(BYTE& opt, WORD& addr);
 	
 	// 模板方法：匹配并返回指定类型指针

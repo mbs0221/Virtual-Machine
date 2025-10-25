@@ -67,6 +67,13 @@ WORD Asm::parse_indirect_register_value() {
 	return regObj->value;
 }
 
+// 解析PC相对寻址值: @offset
+WORD Asm::parse_pc_relative_value() {
+	match('@');
+	Integer* intObj = match_and_get<Integer>(INT);
+	return intObj->value;
+}
+
 WORD Asm::parse_address_value() {
 	match('*');
 	Integer* intObj = match_and_get<Integer>(INT);
@@ -89,8 +96,13 @@ bool Asm::parse_addressing_mode(BYTE& opt, WORD& addr) {
 		addr = parse_indirect_register_value();
 		LOG_DEBUG("Asm.Parser", "Indirect addressing: opt=0x" + std::to_string(opt) + ", reg=0x" + std::to_string(addr));
 		return true;
+	} else if (s->kind == '@') {
+		opt |= MR_PC_REL; // PC相对寻址
+		addr = parse_pc_relative_value();
+		LOG_DEBUG("Asm.Parser", "PC-relative addressing: opt=0x" + std::to_string(opt) + ", offset=0x" + std::to_string(addr));
+		return true;
 	} else {
-		LOG_ERROR("Asm.Parser", "Syntax error at line " + std::to_string(lexer->line) + ": expected immediate symbol '#', address symbol '*', or indirect symbol '[', but got '" + std::string(1, s->kind) + "'");
+		LOG_ERROR("Asm.Parser", "Syntax error at line " + std::to_string(lexer->line) + ": expected immediate symbol '#', address symbol '*', indirect symbol '[', or PC-relative symbol '@', but got '" + std::string(1, s->kind) + "'");
 		return false;
 	}
 }

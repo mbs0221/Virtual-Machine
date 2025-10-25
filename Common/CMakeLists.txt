@@ -77,13 +77,6 @@ set_target_properties(test_logger PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
-# 创建示例程序
-add_executable(example_logger example_usage.cpp)
-target_link_libraries(example_logger Common)
-set_target_properties(example_logger PROPERTIES
-    OUTPUT_NAME "example_logger"
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-)
 
 # 创建简单测试程序
 add_executable(simple_test simple_test.cpp)

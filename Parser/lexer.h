@@ -171,7 +171,6 @@ public:
 	~Lexer(){
 		inf.close();
 		words.clear();
-		printf("~Lexer");
 	}
 	Token *scan()
 	{

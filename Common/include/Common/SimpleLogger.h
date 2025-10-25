@@ -52,7 +52,7 @@ public:
     }
 
 private:
-    SimpleLogger() = default;
+    SimpleLogger() : initialized_(false), currentLevel_(INFO) {}
     ~SimpleLogger() = default;
     SimpleLogger(const SimpleLogger&) = delete;
     SimpleLogger& operator=(const SimpleLogger&) = delete;

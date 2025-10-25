@@ -11,68 +11,7 @@ struct Node{
 	}
 };
 
-// 寄存器分配器
-class RegisterAllocator {
-private:
-	static int nextReg;
-	static int maxReg;
-	static bool usedRegs[256]; // 跟踪寄存器使用状态
-	static int stack[256];     // 寄存器栈，用于回收
-	static int stackTop;       // 栈顶指针
-	
-public:
-	static int allocate() {
-		// 首先尝试从回收栈中获取寄存器
-		if (stackTop > 0) {
-			int reg = stack[--stackTop];
-			usedRegs[reg] = true;
-			return reg;
-		}
-		
-		// 如果没有回收的寄存器，分配新的
-		if (nextReg >= maxReg) {
-			// 寄存器用完了，需要溢出到内存
-			return -1; // 表示需要溢出
-		}
-		usedRegs[nextReg] = true;
-		return nextReg++;
-	}
-	
-	static void free(int reg) {
-		if (reg >= 2 && reg < maxReg && usedRegs[reg]) {
-			usedRegs[reg] = false;
-			// 将寄存器推入回收栈
-			stack[stackTop++] = reg;
-		}
-	}
-	
-	static void reset() {
-		nextReg = 2; // 从寄存器2开始分配，0和1保留给特殊用途
-		stackTop = 0;
-		// 清空所有寄存器使用状态
-		for (int i = 0; i < 256; i++) {
-			usedRegs[i] = false;
-		}
-	}
-	
-	static int getMaxUsed() {
-		return nextReg;
-	}
-	
-	static void printStatus() {
-		printf("寄存器使用状态: ");
-		for (int i = 2; i < nextReg; i++) {
-			if (usedRegs[i]) {
-				printf("R%d ", i);
-			}
-		}
-		printf("\n回收栈: ");
-		for (int i = 0; i < stackTop; i++) {
-			printf("R%d ", stack[i]);
-		}
-		printf("\n");
-	}
-};
+// Parser不再需要寄存器分配器，只生成AST
 
 //表达式
 struct Expr :Node{
@@ -80,11 +19,8 @@ struct Expr :Node{
 	int label;
 	static int count;
 	Expr(char opt) :opt(opt){ 
-		label = RegisterAllocator::allocate();
-		if (label == -1) {
-			// 寄存器溢出，使用内存
-			label = count++;
-		}
+		// Parser只生成AST，不需要寄存器分配
+		label = count++;
 	}
 	virtual void code(FILE *fp){
 		Node::code(fp);
@@ -102,11 +38,13 @@ struct Cond :Expr{
 		Expr::code(fp);
 		E1->code(fp);
 		E2->code(fp);
-		fprintf(fp, "%c $%d $%d $%d\n", opt, E1->label, E2->label, label);
+		// 先进行比较
+		fprintf(fp, "cmp $%d $%d $%d\n", E1->label, E2->label, label);
+		// 根据比较结果跳转
 		switch (opt){
 		case '>':fprintf(fp, "jg L%d\n", True); break;
 		case '=':fprintf(fp, "je L%d\n", True); break;
-		case '<':fprintf(fp, "jb L%d\n", True); break;
+		case '<':fprintf(fp, "jl L%d\n", True); break;
 		case '!':fprintf(fp, "jne L%d\n", True); break;
 		default:fprintf(fp, "jmp L%d\n", True); break;
 		}
@@ -123,10 +61,16 @@ struct Arith :Expr{
 		Expr::code(fp);
 		E1->code(fp);
 		E2->code(fp);
-		fprintf(fp, "%c $%d $%d $%d\n", opt, E1->label, E2->label, label);
-		// 运算完成后，可以回收操作数的寄存器
-		RegisterAllocator::free(E1->label);
-		RegisterAllocator::free(E2->label);
+		// 输出正确的汇编指令
+		switch (opt){
+		case '+': fprintf(fp, "add $%d $%d $%d\n", E1->label, E2->label, label); break;
+		case '-': fprintf(fp, "sub $%d $%d $%d\n", E1->label, E2->label, label); break;
+		case '*': fprintf(fp, "mul $%d $%d $%d\n", E1->label, E2->label, label); break;
+		case '/': fprintf(fp, "div $%d $%d $%d\n", E1->label, E2->label, label); break;
+		case '%': fprintf(fp, "mod $%d $%d $%d\n", E1->label, E2->label, label); break;
+		default: fprintf(fp, "%c $%d $%d $%d\n", opt, E1->label, E2->label, label); break;
+		}
+		// Parser只生成AST，不需要寄存器管理
 	}
 };
 
@@ -413,8 +357,7 @@ struct Assign :Stmt{
 		printf("assign\n");
 		E2->code(fp);
 		fprintf(fp, "store $%d *%d\n", E2->label, E1->offset);
-		// 赋值完成后，可以回收右值的寄存器
-		RegisterAllocator::free(E2->label);
+		// Parser只生成AST，不需要寄存器管理
 	}
 };
 
@@ -562,18 +505,8 @@ struct FuncDef :Stmt{
 		for (iter = params.begin(); iter != params.end(); iter++){
 			fprintf(fp, "var %s 0\n", (*iter)->s->word.c_str());
 		}
-		// 从栈上获取参数并加载到寄存器
-		int paramOffset = 4; // 返回地址(2字节) + 旧BP(2字节)
-		for (iter = params.begin(); iter != params.end(); iter++){
-			int regNum = RegisterAllocator::allocate();
-			if (regNum == -1) {
-				// 寄存器溢出，需要特殊处理
-				printf("警告: 寄存器溢出，参数 %s 无法分配到寄存器\n", (*iter)->s->word.c_str());
-				regNum = 2; // 使用默认寄存器
-			}
-			fprintf(fp, "load $%d *%d\n", regNum, paramOffset);
-			paramOffset += 2; // 每个参数2字节
-		}
+		// Parser只生成AST，不需要寄存器分配
+		// 参数处理将在Optimizer阶段进行
 		body->code(fp);
 		// 恢复栈帧
 		fprintf(fp, "mov $%d $%d\n", 0, 1); // SP = BP
@@ -724,10 +657,6 @@ struct Switch :Stmt{
 };
 
 // 静态变量定义
-int RegisterAllocator::nextReg = 2;
-int RegisterAllocator::maxReg = 16; // 限制使用16个寄存器
-bool RegisterAllocator::usedRegs[256] = {false};
-int RegisterAllocator::stack[256] = {0};
-int RegisterAllocator::stackTop = 0;
+// Parser不再需要寄存器分配器的静态变量
 
 #endif
